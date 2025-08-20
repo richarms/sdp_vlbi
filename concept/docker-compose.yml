@@ -1,0 +1,35 @@
+version: "3.7"
+services:
+  jive5ab-recv:
+    build:
+      context: .
+      # dockerfile: Dockerfile   
+    network_mode: host
+    restart: unless-stopped
+    environment:
+      J5A_PORT: 2620
+      J5A_VERBOSITY: 3
+      J5A_PROTOCOL: udps
+      J5A_NETPORT: "50000"
+      DISK_PATH: /mnt/disk0
+      OUTPUT_PATH: /mnt/disk0/testscan/testscan.vdif
+      AUTOSTART: "true"
+      J5A_BUFF_RCV: 33554432
+      J5A_BUFF_SND: 33554432
+      J5A_THREADS: 4
+      KATCP_ENABLE: "true"
+      KATCP_PORT: 7147
+    volumes:
+      - /mnt/disk0:/mnt/disk0
+      - /mnt/disk1:/mnt/disk1
+    healthcheck:
+      test: ["CMD-SHELL", "echo 'net2file?;' | socat - TCP:127.0.0.1:${J5A_PORT},connect-timeout=1 | grep -q '!net2file?'"]
+      interval: 60s
+      timeout: 2s
+      retries: 3
+    # these sysctls won't be honored in all v1/docker-compose paths; set them on the host.
+    # sysctls:
+    #   net.core.rmem_max: "268435456"
+    #   net.core.rmem_default: "134217728"
+    #   net.core.netdev_max_backlog: "250000"
+
